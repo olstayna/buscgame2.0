@@ -1,0 +1,52 @@
+<div class="bg-[#0f1216] pt-48 sm:pt-64 lg:pt-40 pb-6">
+  <div class="container mx-auto px-4 max-w-7xl">
+    <!-- Filtros/Navegação -->
+    <nav class="flex items-center justify-start sm:justify-center gap-4 sm:gap-8 mb-8 text-sm sm:text-lg md:text-xl overflow-x-auto pb-4 nav-filters">
+      <a href="#" class="text-white font-bold hover:text-[#003ce7] transition-colors active" (click)="setActiveFilter('novidades', $event)">Novidades</a>
+      <a href="#" class="text-white font-bold hover:text-[#003ce7] transition-colors" (click)="setActiveFilter('lideres', $event)">Líderes de vendas</a>
+      <a href="#" class="text-white font-bold hover:text-[#003ce7] transition-colors" (click)="setActiveFilter('ofertas', $event)">Ofertas</a>
+      <a href="#" class="text-white font-bold hover:text-[#003ce7] transition-colors" (click)="setActiveFilter('prevendas', $event)">Pré-vendas</a>
+    </nav>
+    
+    <!-- Grid de Jogos -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      <div *ngFor="let game of games" class="game-card group">
+        <div class="relative aspect-[3/4] rounded-lg overflow-hidden max-w-[320px] mx-auto">
+          <img [src]="game.image" [alt]="game.title" class="w-full h-full object-fill">
+          
+          <!-- Badges (se houver) -->
+          <div *ngIf="game.discount" class="absolute top-2 left-2 bg-[#003ce7] text-white text-xs font-medium px-2 py-1 rounded">
+            -{{game.discount}}%
+          </div>
+          
+          <!-- Overlay com botão -->
+          <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <button class="blue-button bg-[#003ce7] hover:bg-[#0035cc] text-white px-5 py-2 rounded text-sm transition-colors">
+              Comprar
+            </button>
+          </div>
+        </div>
+        
+        <!-- Informações do Jogo -->
+        <div class="mt-2 mx-auto">
+          <h3 class="text-white text-md font-bold mb-1 truncate">{{game.title}}</h3>
+          <div class="flex items-baseline gap-1.5">
+            <span *ngIf="game.originalPrice" class="text-gray-500 line-through text-sm">
+              R$ {{game.originalPrice}}
+            </span>
+            <span class="text-white font-bold text-lg">
+              R$ {{game.price}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botão Ver Mais -->
+    <div class="mt-16 mb-20 text-center">
+      <button class="blue-button bg-[#003ce7] hover:bg-[#0035cc] text-white px-8 py-3 rounded-lg transition-colors">
+        Mostrar mais
+      </button>
+    </div>
+  </div>
+</div> 

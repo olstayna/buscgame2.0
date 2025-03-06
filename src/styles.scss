@@ -1,1 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos globais personalizados */
+:root {
+  --primary: #1a56db;
+  --secondary: #7e22ce;
+  --accent: #f59e0b;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900;
+}
+
+.blue-button {
+  box-shadow: 0 0 10px rgba(0, 60, 231, 0.5), 0 0 20px rgba(0, 60, 231, 0.3), 0 0 30px rgba(0, 60, 231, 0.2);
+}
+
 /* You can add global styles to this file, and also import other style files */

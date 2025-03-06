@@ -1,0 +1,197 @@
+::ng-deep {
+  .ant-carousel {
+    height: 100%;
+    
+    .slick-slider, .slick-list, .slick-track {
+      height: 100%;
+    }
+    
+    .slick-slide {
+      height: 100%;
+      position: relative;
+      
+      > div {
+        height: 100%;
+      }
+
+      [nz-carousel-content] {
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+      }
+    }
+    
+    .slick-dots {
+      display: none !important;
+    }
+    
+    .slick-active {
+      z-index: 1;
+    }
+    
+    .slick-initialized .slick-slide {
+      display: block;
+    }
+  }
+}
+
+.slide-content {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.hero-wrapper {
+  min-height: 100vh;
+}
+
+.hero-section {
+  position: relative;
+  overflow: visible;
+  background-color: #0f1216;
+}
+
+.carousel-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.carousel-slide {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease-in-out;
+
+  &.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.buy-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 60, 231, 0.5),
+              0 0 20px rgba(0, 60, 231, 0.3),
+              0 0 30px rgba(0, 60, 231, 0.2);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(0, 60, 231, 0.6),
+                0 0 25px rgba(0, 60, 231, 0.4),
+                0 0 35px rgba(0, 60, 231, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.nav-arrow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  z-index: 20;
+  
+  @media (min-width: 640px) {
+    width: 40px;
+    height: 40px;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: white;
+  }
+}
+
+.indicator {
+  width: 2px;
+  height: 16px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 20;
+  
+  @media (min-width: 640px) {
+    width: 3px;
+    height: 20px;
+  }
+
+  &.active {
+    background-color: white;
+    height: 32px;
+
+    @media (min-width: 640px) {
+      height: 40px;
+    }
+  }
+  
+  &.inactive {
+    opacity: 0.5;
+  }
+}
+
+.game-cards {
+  @media (max-width: 639px) {
+    position: absolute !important;
+    bottom: -170px !important; 
+     background-color: transparent;
+    padding-top: 12px;
+  }
+
+  @media (min-width: 640px) {
+    transform: translateY(30%);
+    margin-bottom: -60px;
+  }
+  
+  // @media (max-width: 1024px) and (min-width: 640px) {
+  //   margin-bottom: 0;
+  // }
+}
+
+.game-card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  overflow: hidden;
+
+  
+  &:hover {
+    img {
+      transform: scale(1.05);
+    }
+  }
+  
+  img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.3s ease;
+
+    @media (min-width: 640px) {
+      height: 160px;
+    }
+
+    @media (max-width: 639px) {
+      height: 100px; // Smaller images on mobile
+    }
+  }
+}
+
+::ng-deep .ant-carousel {
+  .slick-slide {
+    position: relative;
+  }
+}
