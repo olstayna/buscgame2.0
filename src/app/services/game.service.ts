@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, map, of, forkJoin, switchMap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ApiResponse, DealResponse, Game } from '../interfaces/game.model';
@@ -115,21 +115,25 @@ export class GameService {
     private getDeals(params: Record<string, string>): Observable<{games: Game[], total: number}> {
         const url = `${this.baseUrl}/deals/v2`;
 
-        const requestParams = {
-            ...params,
-            key: environment.apiKey
-        };
+        // Criar HttpParams a partir do objeto params
+        let httpParams = new HttpParams();
+        Object.entries(params).forEach(([key, value]) => {
+            httpParams = httpParams.set(key, value);
+        });
+
+        // Adicionar a chave da API apenas se estiver definida
+        if (environment.apiKey) {
+            httpParams = httpParams.set('key', environment.apiKey);
+        }
 
         return this.http.get<ApiResponse<DealResponse>>(url, {
-            params: requestParams
+            params: httpParams
         }).pipe(
             map(response => {
                 console.log('Dados brutos da API:', response);
                 const games = this.mapResponseToGames(response);
-                // Se temos hasMore, significa que há mais jogos além dos atuais
                 const currentTotal = games.length;
                 const hasMore = response.hasMore || false;
-                // Se hasMore é true, adicionamos mais 20 (padrão da API) ao total
                 const estimatedTotal = hasMore ? currentTotal + 20 : currentTotal;
                 
                 console.log(`Total de jogos encontrados: ${estimatedTotal} (hasMore: ${hasMore})`);
@@ -211,14 +215,15 @@ export class GameService {
      */
     private getGameInfo(gameId: string): Observable<any> {
         const url = `${this.baseUrl}/games/info/v2`;
-        const params = { 
-            id: gameId,
-            key: environment.apiKey
-        };
+        
+        let httpParams = new HttpParams()
+            .set('id', gameId);
 
-        console.log(`Buscando informações do jogo com ID: ${gameId}`);
+        if (environment.apiKey) {
+            httpParams = httpParams.set('key', environment.apiKey);
+        }
 
-        return this.http.get(url, { params }).pipe(
+        return this.http.get(url, { params: httpParams }).pipe(
             map((response: any) => {
                 console.log(`Resposta da API para o jogo ${gameId}:`, response);
                 return response;
