@@ -1,49 +1,42 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GameService } from 'src/app/services/game.service';
-import { Game } from 'src/app/interfaces/game.model';
-import { Subscription } from 'rxjs';
+import { GameService } from '../../services/game.service';
+import { Game } from '../../interfaces/game.model';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-popular-games',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NzSpinModule],
   templateUrl: './popular-games.component.html',
-  styleUrl: './popular-games.component.scss'
+  styleUrls: ['./popular-games.component.scss']
 })
-export class PopularGamesComponent implements OnInit, OnDestroy {
-  private subscription = new Subscription();
+export class PopularGamesComponent implements OnInit {
   games: Game[] = [];
   isLoading = true;
   error: string | null = null;
 
   constructor(private gameService: GameService) {}
 
-  ngOnInit(): void {
-    this.loadPopularGames();
+  ngOnInit() {
+    this.loadGames();
   }
 
-  ngOnDestroy(): void {
-    this.subscription.unsubscribe();
-  }
-
-  private loadPopularGames(): void {
+  loadGames() {
     this.isLoading = true;
     this.error = null;
-
-    this.subscription.add(
-      this.gameService.getPopularGames().subscribe({
-        next: (games) => {
-          this.games = games;
-          this.isLoading = false;
-        },
-        error: (error) => {
-          console.error('Erro ao carregar jogos populares:', error);
-          this.error = 'Falha ao carregar os jogos populares.';
-          this.isLoading = false;
-        }
-      })
-    );
+    
+    this.gameService.getPopularGames().subscribe({
+      next: (games) => {
+        this.games = games;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar jogos populares:', err);
+        this.error = 'Erro ao carregar jogos populares';
+        this.isLoading = false;
+      }
+    });
   }
 
   /**
@@ -51,16 +44,8 @@ export class PopularGamesComponent implements OnInit, OnDestroy {
    * @param event Evento de erro
    * @param game Jogo atual
    */
-  handleImageError(event: Event, game: Game): void {
-    const imgElement = event.target as HTMLImageElement;
-    console.error(`Erro ao carregar imagem para ${game.title}:`, event);
-    
-    if (game.assets?.banner600) {
-      imgElement.src = game.assets.banner600;
-    } else if (game.assets?.banner400) {
-      imgElement.src = game.assets.banner400;
-    } else if (game.assets?.boxart) {
-      imgElement.src = game.assets.boxart;
-    }
+  handleImageError(event: Event, game: Game) {
+    const img = event.target as HTMLImageElement;
+    img.src = game.assets?.banner600 || 'assets/images/placeholder.jpg';
   }
 } 

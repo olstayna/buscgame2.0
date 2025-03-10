@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of, forkJoin, switchMap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ApiResponse, DealResponse, Game } from '../interfaces/game.model';
@@ -33,7 +33,7 @@ export class GameService {
 
     /**
      * Busca jogos populares ordenados por rank
-     * @returns Observable de Game array
+     * @returns Observable de Game array com apenas título e imagem
      */
     getPopularGames(): Observable<Game[]> {
         return this.getDeals({
@@ -45,7 +45,18 @@ export class GameService {
             mature: 'false'
         }).pipe(
             map(response => response.games),
-            switchMap(games => this.enrichGamesWithSteamData(games))
+            switchMap(games => this.enrichGamesWithSteamData(games)),
+            map(games => games.map(game => ({
+                id: game.id,
+                title: game.title,
+                image: game.image,
+                price: game.price,
+                originalPrice: game.originalPrice,
+                discount: game.discount,
+                storeUrl: game.storeUrl,
+                assets: game.assets,
+                steamAppId: game.steamAppId
+            })))
         );
     }
 
@@ -104,27 +115,21 @@ export class GameService {
     private getDeals(params: Record<string, string>): Observable<{games: Game[], total: number}> {
         const url = `${this.baseUrl}/deals/v2`;
 
-        // Criar uma nova instância de HttpParams
-        let httpParams = new HttpParams();
-        
-        // Adicionar todos os parâmetros do objeto params
-        Object.entries(params).forEach(([key, value]) => {
-            httpParams = httpParams.set(key, value);
-        });
-
-        // Adicionar a chave da API
-        if (environment.apiKey) {
-            httpParams = httpParams.set('key', environment.apiKey);
-        }
+        const requestParams = {
+            ...params,
+            key: environment.apiKey
+        };
 
         return this.http.get<ApiResponse<DealResponse>>(url, {
-            params: httpParams
+            params: requestParams
         }).pipe(
             map(response => {
                 console.log('Dados brutos da API:', response);
                 const games = this.mapResponseToGames(response);
+                // Se temos hasMore, significa que há mais jogos além dos atuais
                 const currentTotal = games.length;
                 const hasMore = response.hasMore || false;
+                // Se hasMore é true, adicionamos mais 20 (padrão da API) ao total
                 const estimatedTotal = hasMore ? currentTotal + 20 : currentTotal;
                 
                 console.log(`Total de jogos encontrados: ${estimatedTotal} (hasMore: ${hasMore})`);
@@ -206,17 +211,14 @@ export class GameService {
      */
     private getGameInfo(gameId: string): Observable<any> {
         const url = `${this.baseUrl}/games/info/v2`;
-        
-        let httpParams = new HttpParams()
-            .set('id', gameId);
-
-        if (environment.apiKey) {
-            httpParams = httpParams.set('key', environment.apiKey);
-        }
+        const params = { 
+            id: gameId,
+            key: environment.apiKey
+        };
 
         console.log(`Buscando informações do jogo com ID: ${gameId}`);
 
-        return this.http.get(url, { params: httpParams }).pipe(
+        return this.http.get(url, { params }).pipe(
             map((response: any) => {
                 console.log(`Resposta da API para o jogo ${gameId}:`, response);
                 return response;
@@ -273,7 +275,7 @@ export class GameService {
         return {
             id: gameId,
             title: deal.title || 'Jogo desconhecido',
-            image: deal.assets?.boxart || 'assets/images/notfound.png',
+            image: deal.assets?.boxart || deal.assets?.banner600 || '',
             price: price,
             originalPrice: originalPrice,
             discount: discount,
