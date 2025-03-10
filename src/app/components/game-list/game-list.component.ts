@@ -1,13 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { GameService } from 'src/app/services/game.service';
+import { Game } from 'src/app/interfaces/game.model';
+import { Subscription } from 'rxjs';
 
-interface Game {
-  id: number;
-  title: string;
-  image: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
+type FilterType = 'destaques' | 'ofertas' | 'menorpreco';
+
+interface FilterConfig {
+  sort: string;
+  label: string;
 }
 
 @Component({
@@ -17,78 +18,93 @@ interface Game {
   templateUrl: './game-list.component.html',
   styleUrl: './game-list.component.scss'
 })
-export class GameListComponent {
-  activeFilter: string = 'novidades';
+export class GameListComponent implements OnInit, OnDestroy {
+  private subscription = new Subscription();
+  activeFilter: FilterType = 'destaques';
+  games: Game[] = [];
+  isLoading = false;
+  isLoadingMore = false;
+  error: string | null = null;
+  totalGames = 0;
+  readonly itemsPerRow = 4;
+  readonly initialRows = 3;
 
-  games: Game[] = [
-    {
-      id: 1,
-      title: 'Mafia: Definitive Edition',
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1030840/library_600x900.jpg',
-      price: 1260,
-      originalPrice: 1500,
-      discount: 15
-    },
-    {
-      id: 2,
-      title: 'The Survivalists',
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/897450/library_600x900.jpg',
-      price: 160
-    },
-    {
-      id: 3,
-      title: 'Mount & Blade II: Bannerlord',
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/261550/library_600x900.jpg',
-      price: 2200
-    },
-    {
-      id: 4,
-      title: 'Metro Exodus',
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/412020/library_600x900.jpg',
-      price: 750,
-      originalPrice: 900,
-      discount: 20
-    },
-    {
-      id: 5,
-      title: 'PUBG: Battlegrounds',
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/578080/library_600x900.jpg',
-      price: 720
-    },
-    {
-      id: 6,
-      title: 'Dark Souls III',
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/374320/library_600x900.jpg',
-      price: 1600
-    },
-    {
-      id: 7,
-      title: 'Naruto Shippuden: Ultimate Ninja Storm 4',
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/349040/library_600x900.jpg',
-      price: 700,
-      originalPrice: 1000,
-      discount: 30
-    },
-    {
-      id: 8,
-      title: 'Star Wars Jedi: Fallen Order',
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1172380/library_600x900.jpg',
-      price: 1000
-    }
-  ];
+  readonly filterConfigs: Record<FilterType, FilterConfig> = {
+    destaques: { sort: '-trending', label: 'Destaques' },
+    ofertas: { sort: '-time', label: 'Ofertas' },
+    menorpreco: { sort: 'price', label: 'Menor preço' }
+  };
 
-  setActiveFilter(filter: string, event: Event): void {
+  constructor(private gameService: GameService) {}
+
+  ngOnInit(): void {
+    this.loadInitialGames();
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
+
+  setActiveFilter(filter: FilterType, event: Event): void {
     event.preventDefault();
-    this.activeFilter = filter;
+    if (this.activeFilter === filter) return;
     
-    // Remove active class from all links
+    this.activeFilter = filter;
+    this.games = [];
+    this.loadInitialGames();
+    
     const links = document.querySelectorAll('nav.nav-filters a');
     links.forEach(link => link.classList.remove('active'));
-    
-    // Add active class to clicked link
     (event.target as HTMLElement).classList.add('active');
+  }
+
+  loadMore(): void {
+    if (this.isLoadingMore) return;
     
-    // Here you would typically filter the games based on the selected filter
-    // For now, we're just updating the UI
+    this.isLoadingMore = true;
+    const nextOffset = this.games.length;
+    const sort = this.filterConfigs[this.activeFilter].sort;
+
+    this.subscription.add(
+      this.gameService.getGamesList(sort, nextOffset, this.itemsPerRow).subscribe({
+        next: (response) => {
+          this.games = [...this.games, ...response.games];
+          this.totalGames = response.total;
+          this.isLoadingMore = false;
+        },
+        error: (error) => {
+          this.error = 'Falha ao carregar mais jogos. Por favor, tente novamente mais tarde.';
+          this.isLoadingMore = false;
+        }
+      })
+    );
+  }
+
+  private loadInitialGames(): void {
+    if (this.isLoading) return;
+    
+    this.isLoading = true;
+    this.error = null;
+    const sort = this.filterConfigs[this.activeFilter].sort;
+    const initialItems = this.initialRows * this.itemsPerRow;
+
+    this.subscription.add(
+      this.gameService.getGamesList(sort, 0, initialItems).subscribe({
+        next: (response) => {
+          this.games = response.games;
+          this.totalGames = response.total;
+          this.isLoading = false;
+        },
+        error: (error) => {
+          this.error = 'Falha ao carregar os jogos. Por favor, tente novamente mais tarde.';
+          this.isLoading = false;
+        }
+      })
+    );
+  }
+
+  get showLoadMore(): boolean {
+    const temMaisJogos = this.games.length < this.totalGames;
+    return temMaisJogos;
   }
 } 

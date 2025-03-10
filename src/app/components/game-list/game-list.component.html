@@ -1,52 +1,106 @@
 <div class="bg-[#0f1216] pt-48 sm:pt-64 lg:pt-40 pb-6">
   <div class="container mx-auto px-4 max-w-7xl">
     <!-- Filtros/Navegação -->
-    <nav class="flex items-center justify-start sm:justify-center gap-4 sm:gap-8 mb-8 text-sm sm:text-lg md:text-xl overflow-x-auto pb-4 nav-filters">
-      <a href="#" class="text-white font-bold hover:text-[#003ce7] transition-colors active" (click)="setActiveFilter('novidades', $event)">Novidades</a>
-      <a href="#" class="text-white font-bold hover:text-[#003ce7] transition-colors" (click)="setActiveFilter('lideres', $event)">Líderes de vendas</a>
-      <a href="#" class="text-white font-bold hover:text-[#003ce7] transition-colors" (click)="setActiveFilter('ofertas', $event)">Ofertas</a>
-      <a href="#" class="text-white font-bold hover:text-[#003ce7] transition-colors" (click)="setActiveFilter('prevendas', $event)">Pré-vendas</a>
+    <nav
+      class="flex items-center justify-start sm:justify-center gap-4 sm:gap-8 mb-8 text-sm sm:text-lg md:text-xl overflow-x-auto pb-4 nav-filters">
+      <a href="#" class="text-white font-bold hover:text-[#003ce7] transition-colors"
+        [class.active]="activeFilter === 'destaques'" (click)="setActiveFilter('destaques', $event)">
+        {{ filterConfigs.destaques.label }}
+      </a>
+      <a href="#" class="text-white font-bold hover:text-[#003ce7] transition-colors"
+        [class.active]="activeFilter === 'ofertas'" (click)="setActiveFilter('ofertas', $event)">
+        {{ filterConfigs.ofertas.label }}
+      </a>
+      <a href="#" class="text-white font-bold hover:text-[#003ce7] transition-colors"
+        [class.active]="activeFilter === 'menorpreco'" (click)="setActiveFilter('menorpreco', $event)">
+        {{ filterConfigs.menorpreco.label }}
+      </a>
     </nav>
-    
-    <!-- Grid de Jogos -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-      <div *ngFor="let game of games" class="game-card group">
-        <div class="relative aspect-[3/4] rounded-lg overflow-hidden max-w-[320px] mx-auto">
-          <img [src]="game.image" [alt]="game.title" class="w-full h-full object-fill">
-          
-          <!-- Badges (se houver) -->
-          <div *ngIf="game.discount" class="absolute top-2 left-2 bg-[#003ce7] text-white text-xs font-medium px-2 py-1 rounded">
-            -{{game.discount}}%
-          </div>
-          
-          <!-- Overlay com botão -->
-          <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <button class="blue-button bg-[#003ce7] hover:bg-[#0035cc] text-white px-5 py-2 rounded text-sm transition-colors">
-              Comprar
-            </button>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="text-center p-4">
+      <div class="text-white text-center p-4 max-w-md mx-auto">
+        <svg class="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-xl mb-2">Erro</p>
+        <p>{{ error }}</p>
+      </div>
+    </div>
+
+    <!-- Loading Skeleton -->
+    <div *ngIf="isLoading && !games.length" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+      <ng-container *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12]">
+        <div class="game-card group">
+          <div class="relative aspect-[3/4] rounded-lg overflow-hidden max-w-[320px] mx-auto">
+            <div class="w-full h-full bg-gray-800 animate-pulse"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-4">
+              <div class="h-4 w-3/4 bg-gray-700 rounded animate-pulse mb-2"></div>
+              <div class="h-6 w-1/2 bg-gray-700 rounded animate-pulse"></div>
+            </div>
           </div>
         </div>
-        
+      </ng-container>
+    </div>
+
+    <!-- Grid de Jogos -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+      <div *ngFor="let game of games" class="game-card group">
+        <div class="relative aspect-[3/4] rounded-lg overflow-hidden max-w-[320px] mx-auto">
+          <img [src]="game.image" [alt]="game.title" class="w-full h-full object-cover">
+
+          <!-- Badge de Desconto -->
+          <div *ngIf="game.discount"
+            class="absolute top-2 left-2 bg-[#003ce7] text-white text-xs font-medium px-2 py-1 rounded">
+            -{{game.discount}}%
+          </div>
+
+          <!-- Overlay com botão -->
+          <div
+            class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <a [href]="game.storeUrl" target="_blank"
+              class="blue-button bg-[#003ce7] hover:bg-[#0035cc] text-white px-5 py-2 rounded text-sm transition-colors">
+              Comprar
+            </a>
+          </div>
+        </div>
+
         <!-- Informações do Jogo -->
         <div class="mt-2 mx-auto">
-          <h3 class="text-white text-md font-bold mb-1 truncate">{{game.title}}</h3>
+          <h3 class="text-white text-md font-medium mb-1 truncate">{{game.title}}</h3>
           <div class="flex items-baseline gap-1.5">
             <span *ngIf="game.originalPrice" class="text-gray-500 line-through text-sm">
-              R$ {{game.originalPrice}}
+              R$ {{game.originalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}}
             </span>
-            <span class="text-white font-bold text-lg">
-              R$ {{game.price}}
+            <span class="text-white font-extrabold text-lg">
+              R$ {{game.price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}}
             </span>
           </div>
         </div>
       </div>
+
+      <!-- Loading More Skeleton -->
+      <ng-container *ngIf="isLoadingMore">
+        <div *ngFor="let i of [1,2,3,4]" class="game-card group">
+          <div class="relative aspect-[3/4] rounded-lg overflow-hidden max-w-[320px] mx-auto">
+            <div class="w-full h-full bg-gray-800 animate-pulse"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-4">
+              <div class="h-4 w-3/4 bg-gray-700 rounded animate-pulse mb-2"></div>
+              <div class="h-6 w-1/2 bg-gray-700 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
     </div>
 
     <!-- Botão Ver Mais -->
     <div class="mt-16 mb-20 text-center">
-      <button class="blue-button bg-[#003ce7] hover:bg-[#0035cc] text-white px-8 py-3 rounded-lg transition-colors">
+      <button *ngIf="showLoadMore" (click)="loadMore()" [disabled]="isLoadingMore" (click)="loadMore()"
+        class="blue-button bg-[#003ce7] hover:bg-[#0035cc] text-white px-8 py-3 rounded-lg transition-colors">
         Mostrar mais
       </button>
     </div>
   </div>
-</div> 
+</div>
