@@ -95,10 +95,7 @@ export class GameService {
             mature: 'false'
         }).pipe(
             map(response => {
-                console.log('Resposta completa da API:', response);
                 const total = response.total;
-                console.log('Offset atual:', offset);
-                console.log('Limite atual:', limit);
                 return {
                     games: response.games,
                     total: total
@@ -130,13 +127,11 @@ export class GameService {
             params: httpParams
         }).pipe(
             map(response => {
-                console.log('Dados brutos da API:', response);
                 const games = this.mapResponseToGames(response);
                 const currentTotal = games.length;
                 const hasMore = response.hasMore || false;
                 const estimatedTotal = hasMore ? currentTotal + 20 : currentTotal;
                 
-                console.log(`Total de jogos encontrados: ${estimatedTotal} (hasMore: ${hasMore})`);
                 return {
                     games,
                     total: estimatedTotal
@@ -174,7 +169,6 @@ export class GameService {
                         return this.checkImageExists(libraryHeroUrl).pipe(
                             switchMap(heroExists => {
                                 if (heroExists) {
-                                    console.log(`Usando library_hero.jpg da Steam para ${game.title}: ${libraryHeroUrl}`);
                                     game.image = libraryHeroUrl;
                                     return of(game);
                                 }
@@ -182,10 +176,7 @@ export class GameService {
                                 return this.checkImageExists(headerUrl).pipe(
                                     map(headerExists => {
                                         if (headerExists) {
-                                            console.log(`Usando header.jpg da Steam para ${game.title}: ${headerUrl}`);
                                             game.image = headerUrl;
-                                        } else {
-                                            console.log(`Nenhuma imagem da Steam disponível para ${game.title}, mantendo imagem original`);
                                         }
                                         return game;
                                     })
@@ -225,11 +216,9 @@ export class GameService {
 
         return this.http.get(url, { params: httpParams }).pipe(
             map((response: any) => {
-                console.log(`Resposta da API para o jogo ${gameId}:`, response);
                 return response;
             }),
             catchError(error => {
-                console.error(`Erro ao obter informações do jogo ${gameId}:`, error);
                 return of(null);
             })
         );
@@ -268,19 +257,19 @@ export class GameService {
      * @returns Game object
      */
     private mapDealToGame(deal: any): Game {
-        console.log('Dados do deal:', deal);
         
         const price = deal.deal?.price?.amount || 0;
         const originalPrice = deal.deal?.regular?.amount || price;
         const discount = deal.deal?.cut || 0;
         
         const gameId = deal.id || deal.plain || `game-${Date.now()}`;
-        console.log(`ID extraído para o jogo ${deal.title}: ${gameId}`);
+        
+        const image = deal.assets?.boxart || deal.assets?.banner600 || 'assets/images/notfound.png';
         
         return {
             id: gameId,
             title: deal.title || 'Jogo desconhecido',
-            image: deal.assets?.boxart || deal.assets?.banner600 || '',
+            image: image,
             price: price,
             originalPrice: originalPrice,
             discount: discount,

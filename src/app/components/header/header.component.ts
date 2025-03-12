@@ -20,10 +20,4 @@ export class HeaderComponent {
   toggleMobileMenu() {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
   }
-
-  buscarJogos(evento: any): void {
-    const termo = evento.target.value;
-    // TODO: Implementar a lógica de busca
-    console.log('Buscando por:', termo);
-  }
 }
